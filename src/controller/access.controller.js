@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 const AccessService = require("../services/access.service");
 class AcessController {
     async signUp(req, res, next) {

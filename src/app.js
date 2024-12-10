@@ -22,15 +22,10 @@ app.use(express.urlencoded({
 require('./dbs/init.mongdb')
 // const { checkOverload } = require('./helpers/check.connect')
 // checkOverload()
-const { countConnect } = require('./helpers/check.connect')
-countConnect()
+// const { countConnect } = require('./helpers/check.connect')
+// countConnect()
 // inint router
-app.use('', require('./routes'))
-// app.get('/', (req, res, next ) => {
-//     return res.status(200).json({
-//         message: 'test'
-//     })
-// })
-// handing error
+app.use('/', require('./routes'))
+
 
 module.exports = app
