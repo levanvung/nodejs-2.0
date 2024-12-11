@@ -40,7 +40,16 @@ class AccessService {
         // created privateKey, publicKey
         const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
           modulusLength: 4096,
+          publicKeyEncoding: {
+            type: "pkcs1",
+            format: "pem",
+          },
+          privateKeyEncoding: {
+            type: "pkcs1",
+            format: "pem",
+          },
         });
+        // Public key CryptoGraphy Standards !
         console.log({ privateKey, publicKey });
 
         const publicKeyString = await KeyTokenService.createKeyToken({
@@ -54,10 +63,11 @@ class AccessService {
             message: "Tạo key token thất bại",
           };
         }
-
+        const publicKeyObject = crypto.createPublicKey( publicKeyString )
+        console.log(publicKeyObject, ' publicKeyObject 22222222222222')
         const tokens = await createTokenPair(
           { userId: newShop._id, email },
-          publicKey,
+          publicKeyString,
           privateKey
         );
         console.log(`Created token success:`, tokens);
