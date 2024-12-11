@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtilts");
+const { getInfoData } = require("../utils");
 
 const RoleShop = {
   SHOP: "SHOP",
@@ -75,7 +76,7 @@ class AccessService {
         return {
           code: "201",
           metadata: {
-            shop: newShop,
+            shop: getInfoData({ fileds: ['_id', 'name', 'email'], object:newShop}),
             tokens,
           },
         };
