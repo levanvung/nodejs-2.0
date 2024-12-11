@@ -1,28 +1,30 @@
-'use-strict'
+"use-strict";
 
-const JWT = require('jsonwebtoken')
-const createTokenPair = async( payload, publicKey, privateKey ) => {
-    try {
-        const accessToken = jwt.sign(payload, privateKey, { algorithm: 'RS256' ,expiresIn: '15m'})
-        const refreshToken = jwt.sign(payload, privateKey, {algorithm: 'RS256' ,expiresIn: '7d'})
-        const keyToken = new KeyToken({
-            user: payload.user,
-            publicKey,
-            refreshToken: [refreshToken]
-        })
-        JWT.verify( accesssToken, publicKey, (err, decode)=> {
-            if(err){
-                console.log(err)
-            }else{
-                console.log(decode)
-            }
-        })
-        await keyToken.save()
-        return {accessToken, refreshToken}
-    } catch (error) {
-        throw new Error(error)
-    }
-}
+const JWT = require("jsonwebtoken");
+
+const createTokenPair = async (payload, publicKey, privateKey) => {
+  try {
+    const accessToken = await JWT.sign( payload, privateKey, {
+        algorithm: 'RS256',
+        expiresIn: '2 days'
+    })
+    const refreshToken = await JWT.sign( payload, privateKey, {
+        algorithm: 'RS256',
+        expiresIn: '7 days'
+    })
+    JWT.verify(accessToken, publicKey, (err, decode) => {
+        if(err){
+            console.log('đây là lỗi', err);
+        } else{
+            console.log('đây là được', decode)
+        }
+    })
+    return { accessToken, refreshToken}
+  } catch (error) {
+
+  }
+};
+
 module.exports = {
     createTokenPair
 }

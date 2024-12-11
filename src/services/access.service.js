@@ -1,15 +1,15 @@
 "use strict";
 const shopModel = require("../models/shop.model");
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtilts");
 
 const RoleShop = {
-    SHOP: 'SHOP',
-    WRITER: 'WRITER',
-    EDITOR: 'EDITOR',
-    ADMIN: 'ADMIN',
+  SHOP: "SHOP",
+  WRITER: "WRITER",
+  EDITOR: "EDITOR",
+  ADMIN: "ADMIN",
 };
 
 class AccessService {
@@ -19,9 +19,9 @@ class AccessService {
       const holderShop = await shopModel.findOne({ email }).lean();
       if (holderShop) {
         return {
-          code: '20002',
-          message: 'Email đã tồn tại',
-          status: 'error'
+          code: "20002",
+          message: "Email đã tồn tại",
+          status: "error",
         };
       }
 
@@ -33,49 +33,53 @@ class AccessService {
         name,
         email,
         password: hashPassword,
-        roles: [RoleShop.SHOP]
+        roles: [RoleShop.SHOP],
       });
 
       if (newShop) {
         // created privateKey, publicKey
-        const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-          modulusLength: 4096
+        const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+          modulusLength: 4096,
         });
         console.log({ privateKey, publicKey });
 
         const publicKeyString = await KeyTokenService.createKeyToken({
           userId: newShop._id,
-          publicKey
+          publicKey,
         });
 
         if (!publicKeyString) {
           return {
-            code: '20003',
-            message: 'Tạo key token thất bại'
+            code: "20003",
+            message: "Tạo key token thất bại",
           };
         }
 
-        const tokens = await createTokenPair({ userId: newShop._id, email }, publicKey, privateKey);
+        const tokens = await createTokenPair(
+          { userId: newShop._id, email },
+          publicKey,
+          privateKey
+        );
         console.log(`Created token success:`, tokens);
 
         return {
-          code: '201',
+          code: "201",
           metadata: {
             shop: newShop,
-            tokens
-          }
+            tokens,
+          },
         };
       }
 
       return {
         code: 201,
-        metadata: null
+        metadata: null,
       };
     } catch (error) {
       return {
         code: "xxx",
         message: error.message,
-        status: "error"
+        status: "error",
       };
     }
   }
