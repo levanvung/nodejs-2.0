@@ -4,7 +4,6 @@
 
 POST {{url_dev}}/shop/signup
 Content-Type: application/json
-
 {
     "name": "vưvwvw",
     "email": "test1@gmail.com",
