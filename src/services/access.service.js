@@ -39,36 +39,46 @@ class AccessService {
 
       if (newShop) {
         // created privateKey, publicKey
-        const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
-          modulusLength: 4096,
-          publicKeyEncoding: {
-            type: "pkcs1",
-            format: "pem",
-          },
-          privateKeyEncoding: {
-            type: "pkcs1",
-            format: "pem",
-          },
-        });
+        //thuật toán này xịn
+        // const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        //   modulusLength: 4096,
+        //   publicKeyEncoding: {
+        //     type: "pkcs1",
+        //     format: "pem",
+        //   },
+        //   privateKeyEncoding: {
+        //     type: "pkcs1",
+        //     format: "pem",
+        //   },
+        // });
         // Public key CryptoGraphy Standards !
+
+        //cách đơn giản
+        const privateKey = crypto.randomBytes(64).toString("hex");
+        const publicKey = crypto.randomBytes(64).toString("hex");
+
         console.log({ privateKey, publicKey });
 
-        const publicKeyString = await KeyTokenService.createKeyToken({
+        const keyStore = await KeyTokenService.createKeyToken({
           userId: newShop._id,
           publicKey,
+          privateKey,
         });
 
-        if (!publicKeyString) {
+        if (!keyStore) {
           return {
             code: "20003",
             message: "Tạo key token thất bại",
           };
         }
-        const publicKeyObject = crypto.createPublicKey( publicKeyString )
-        console.log(publicKeyObject, ' publicKeyObject 22222222222222')
+        // const publicKeyObject = crypto.createPublicKey(publicKeyString);
+
+        // console.log(publicKeyObject, " publicKeyObject 22222222222222");
+
+        
         const tokens = await createTokenPair(
           { userId: newShop._id, email },
-          publicKeyString,
+          publicKey,
           privateKey
         );
         console.log(`Created token success:`, tokens);
@@ -76,7 +86,10 @@ class AccessService {
         return {
           code: "201",
           metadata: {
-            shop: getInfoData({ fileds: ['_id', 'name', 'email'], object:newShop}),
+            shop: getInfoData({
+              fileds: ["_id", "name", "email"],
+              object: newShop,
+            }),
             tokens,
           },
         };
