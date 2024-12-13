@@ -1,7 +1,7 @@
 "use-strict";
 const HEADER = {
   API_KEY: 'x-api-key',
-  AUTHORIATION: ["authorization"],
+  AUTHORIATION: "authorization",
 };
 const { findById } = require("../services/apiKey.service");
 const apiKey = async (req, res, next) => {
