@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtilts");
 const { getInfoData } = require("../utils");
-
+const { BadRequestError, ConflictError } = require("../core/error.response");
 const RoleShop = {
   SHOP: "SHOP",
   WRITER: "WRITER",
@@ -15,15 +15,11 @@ const RoleShop = {
 
 class AccessService {
   static async signUp({ name, email, password }) {
-    try {
+    // try {
       // check email exist
       const holderShop = await shopModel.findOne({ email }).lean();
       if (holderShop) {
-        return {
-          code: "20002",
-          message: "Email đã tồn tại",
-          status: "error",
-        };
+        throw new BadRequestError("Email đã tồn tại");
       }
 
       // hash password
@@ -66,10 +62,7 @@ class AccessService {
         });
 
         if (!keyStore) {
-          return {
-            code: "20003",
-            message: "Tạo key token thất bại",
-          };
+           throw new ConflictError("Tạo key thất bại");
         }
         // const publicKeyObject = crypto.createPublicKey(publicKeyString);
 
@@ -95,17 +88,17 @@ class AccessService {
         };
       }
 
-      return {
-        code: 201,
-        metadata: null,
-      };
-    } catch (error) {
-      return {
-        code: "xxx",
-        message: error.message,
-        status: "error",
-      };
-    }
+      // return {
+      //   code: 201,
+      //   metadata: null,
+      // };
+    // } catch (error) {
+    //   return {
+    //     code: "xxx",
+    //     message: error.message,
+    //     status: "error",
+    //   };
+    // }
   }
 }
 
