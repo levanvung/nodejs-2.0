@@ -21,15 +21,15 @@ class AccessService {
     if (!foundShop) {
       throw new BadRequestError("Email không tồn tại");
     }
-    const match = bcrypt.compare(password, foundShop.password);
-    if (!match) {
-      throw new BadRequestError("Mật khẩu không đúng");
-    }
+    const match = await bcrypt.compare(password, foundShop.password);
+    if (!match) throw new BadRequestError("Mật khẩu không đúng");
+    
 
     const privateKey = crypto.randomBytes(64).toString("hex");
     const publicKey = crypto.randomBytes(64).toString("hex");
+    const {_id: userId} = foundShop
     const tokens = await createTokenPair(
-      { userId: foundShop._id, email },
+      { userId, email },
       publicKey,
       privateKey
     );
@@ -37,6 +37,7 @@ class AccessService {
       publicKey,
       privateKey,
       refreshToken: tokens.refreshToken,
+      userId: foundShop._id,
     })
     return {
         shop: getInfoData({
