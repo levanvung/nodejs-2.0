@@ -1,7 +1,7 @@
 'use-strict'
 
 const keytokenModel = require("../models/keytoken.model")
-
+const {Types} = require ('mongoose')
 class KeyTokenService {
     static createKeyToken = async ( { userId, publicKey, privateKey, refreshToken} )=>{
         try {
@@ -21,6 +21,23 @@ class KeyTokenService {
         }
     }
 
+    static findByUserId = async (userId) => {
+        try {
+            if (typeof userId === 'string' && Types.ObjectId.isValid(userId)) {
+                console.log(userId, '----------------')
+                
+                return await keytokenModel.findOne({ user: userId });
+            } else {
+                throw new Error('userId phải là chuỗi ObjectId hợp lệ');
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    static removeKeyById = async (id)=>{
+        return await keytokenModel.findOneAndDelete(id)
+    }
 }
 
 module.exports = KeyTokenService

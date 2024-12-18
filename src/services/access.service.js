@@ -2,7 +2,7 @@
 const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const KeyTokenService = require("./keyToken.service");
+const KeyTokenService = require("./keytoken.service");
 const { createTokenPair } = require("../auth/authUtilts");
 const { getInfoData } = require("../utils");
 const { BadRequestError, ConflictError } = require("../core/error.response");
@@ -15,6 +15,15 @@ const RoleShop = {
 };
 
 class AccessService {
+
+  // dang xuat
+
+  static logout = async ( keyStore ) => {
+    const delKey = await KeyTokenService.removeKeyById(keyStore._id)
+    return delKey
+  }
+
+
   // đăng nhập
   static login = async ({  email, password, refreshToken = null }) => {
     const foundShop = await findByEmail({ email });
