@@ -32,9 +32,9 @@ const authentication = asyncHandler(async (req, res, next) => {
   if (!userId) {
     return res.status(401).json({ message: "Client id is required" });
   }
-  
+
   const keyStore = await findByUserId(userId);
-  console.log(keyStore, "@@@@@@@@@@@@@@@@");
+//   console.log(keyStore, "@@@@@@@@@@@@@@@@");
   if (!keyStore) {
     return res.status(401).json({ message: "Client id is invalid" });
   }
@@ -55,7 +55,13 @@ const authentication = asyncHandler(async (req, res, next) => {
     return res.status(401).json({ message: "Access token is invalid)" });
   }
 });
+
+const verifyJWT = async (token, keySecret) => {
+  return await JWT.verify(token, keySecret);
+    
+}
 module.exports = {
   createTokenPair,
-  authentication
+  authentication,
+  verifyJWT
 };

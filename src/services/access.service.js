@@ -3,7 +3,7 @@ const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const KeyTokenService = require("./keytoken.service");
-const { createTokenPair } = require("../auth/authUtilts");
+const { createTokenPair, verifyJWT } = require("../auth/authUtilts");
 const { getInfoData } = require("../utils");
 const { BadRequestError, ConflictError } = require("../core/error.response");
 const { findByEmail } = require("./shop.service");
@@ -15,28 +15,75 @@ const RoleShop = {
 };
 
 class AccessService {
+  //refresh token
 
+  static refreshToken = async (refreshToken ) => {
+    const foundToken = await KeyTokenService.findByRefreshTokenUsed(
+      refreshToken
+    );
+    if (foundToken) {
+      const { userId, email } = await verifyJWT(
+        refreshToken,
+        foundToken.privateKey
+      );
+      await KeyTokenService.deleteKeyById(userId);
+      throw new BadRequestError("Token đã được sử dụng login lai di");
+    }
+    console.log('qưeqwewqe');
+    
+    const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
+    if (!holderToken) {
+      console.log(holderToken, "holderToken");
+
+      throw new BadRequestError("Shop not register");
+      
+    }
+    const { userId, email } = await verifyJWT(
+      refreshToken,
+      holderToken.privateKey
+    );
+    const foundShop = await findByEmail({ email });
+    if (!foundShop) {
+      throw new BadRequestError("email không tồn tại");
+    }
+
+    const tokens = await createTokenPair(
+      { userId, email },
+      holderToken.publicKey,
+      holderToken.privateKey
+    );
+    await holderToken.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokenUsed: refreshToken,
+      }
+    });
+    return {
+      user: {userId, email},
+      tokens
+    }
+  };
   // dang xuat
 
-  static logout = async ( keyStore ) => {
-    const delKey = await KeyTokenService.removeKeyById(keyStore._id)
-    return delKey
-  }
-
+  static logout = async (keyStore) => {
+    const delKey = await KeyTokenService.removeKeyById(keyStore._id);
+    return delKey;
+  };
 
   // đăng nhập
-  static login = async ({  email, password, refreshToken = null }) => {
+  static login = async ({ email, password, refreshToken = null }) => {
     const foundShop = await findByEmail({ email });
     if (!foundShop) {
       throw new BadRequestError("Email không tồn tại");
     }
     const match = await bcrypt.compare(password, foundShop.password);
     if (!match) throw new BadRequestError("Mật khẩu không đúng");
-    
 
     const privateKey = crypto.randomBytes(64).toString("hex");
     const publicKey = crypto.randomBytes(64).toString("hex");
-    const {_id: userId} = foundShop
+    const { _id: userId } = foundShop;
     const tokens = await createTokenPair(
       { userId, email },
       publicKey,
@@ -47,13 +94,13 @@ class AccessService {
       privateKey,
       refreshToken: tokens.refreshToken,
       userId: foundShop._id,
-    })
+    });
     return {
-        shop: getInfoData({
-          fileds: ["_id", "name", "email"],
-          object: foundShop,
-        }),
-        tokens,
+      shop: getInfoData({
+        fileds: ["_id", "name", "email"],
+        object: foundShop,
+      }),
+      tokens,
     };
   };
 
