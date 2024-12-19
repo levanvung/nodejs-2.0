@@ -17,53 +17,38 @@ const RoleShop = {
 class AccessService {
   //refresh token
 
-  static refreshToken = async (refreshToken ) => {
-    const foundToken = await KeyTokenService.findByRefreshTokenUsed(
-      refreshToken
-    );
-    if (foundToken) {
-      const { userId, email } = await verifyJWT(
-        refreshToken,
-        foundToken.privateKey
-      );
+  static refreshToken = async ({ keyStore, user, refreshToken }) => {
+    const { userId, email } = user;
+    if (keyStore.refreshTokenUsed.includes(refreshToken)) {
       await KeyTokenService.deleteKeyById(userId);
       throw new BadRequestError("Token đã được sử dụng login lai di");
     }
-    console.log('qưeqwewqe');
-    
-    const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
-    if (!holderToken) {
-      console.log(holderToken, "holderToken");
 
-      throw new BadRequestError("Shop not register");
-      
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new BadRequestError("Shop chua dang ky");
     }
-    const { userId, email } = await verifyJWT(
-      refreshToken,
-      holderToken.privateKey
-    );
     const foundShop = await findByEmail({ email });
-    if (!foundShop) {
-      throw new BadRequestError("email không tồn tại");
-    }
-
+    if (!foundShop) throw new BadRequestError("Email không tồn tại");
     const tokens = await createTokenPair(
       { userId, email },
-      holderToken.publicKey,
-      holderToken.privateKey
+      keyStore.publicKey,
+      keyStore.privateKey
     );
-    await holderToken.updateOne({
+    await keyStore.updateOne({
       $set: {
         refreshToken: tokens.refreshToken,
       },
       $addToSet: {
         refreshTokenUsed: refreshToken,
-      }
+      },
     });
     return {
-      user: {userId, email},
-      tokens
-    }
+      user ,
+      tokens,
+    };
+   
+
+
   };
   // dang xuat
 

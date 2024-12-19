@@ -6,9 +6,14 @@ class AcessController {
   async refreshToken(req, res, next) {
     new OK({
       message: "Refresh token successfully",
-      metadata: await AccessService.refreshToken(req.body.refreshToken),
+      metadata: await AccessService.refreshToken({
+        refreshToken: req.refreshToken,
+        user: req.user,
+        keyStore: req.keyStore
+      }),
     }).send(res)
     }
+
   async logout(req, res, next) {
     new OK({
       message: "Login successfully",
@@ -16,6 +21,7 @@ class AcessController {
     }).send(res)
       // return res.status(200).json(await AccessService.login(req.body
   }
+
     async login(req, res, next) {
       new OK({
         message: "Login successfully",
@@ -23,6 +29,7 @@ class AcessController {
       }).send(res)
         // return res.status(200).json(await AccessService.login(req.body
     }
+
     async signUp(req, res, next) {
       new CREATED({
         message: "Register successfully",

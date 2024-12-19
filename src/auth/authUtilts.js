@@ -3,6 +3,7 @@ const HEADER = {
   API_KEY: "x-api-key",
   CLIENT_ID: "x-client-id",
   AUTHORIATION: "authorization",
+  REFRESHTOKEN: "x-rftoken-id",
 };
 const { findByUserId } = require("../services/keytoken.service");
 const JWT = require("jsonwebtoken");
@@ -26,17 +27,32 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
     return { accessToken, refreshToken };
   } catch (error) {}
 };
+
 const authentication = asyncHandler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
-
   if (!userId) {
     return res.status(401).json({ message: "Client id is required" });
   }
 
   const keyStore = await findByUserId(userId);
-//   console.log(keyStore, "@@@@@@@@@@@@@@@@");
   if (!keyStore) {
     return res.status(401).json({ message: "Client id is invalid" });
+  }
+
+  if (req.headers[HEADER.REFRESHTOKEN]) {
+    try {
+      const refreshToken = req.headers[HEADER.REFRESHTOKEN];
+      const decoudeUser = await JWT.verify(refreshToken, keyStore.privateKey);
+      if (userId !== decoudeUser.userId) {
+        return res.status(401).json({ message: "Invalid User)" });
+      }
+      req.keyStore = keyStore;
+      req.user = decoudeUser;
+      req.refreshToken = refreshToken;
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "refresh token is invalid)" });
+    }
   }
 
   const accessToken = req.headers[HEADER.AUTHORIATION];
@@ -46,9 +62,9 @@ const authentication = asyncHandler(async (req, res, next) => {
 
   try {
     const decoudeUser = await JWT.verify(accessToken, keyStore.publicKey);
-    if(userId !== decoudeUser.userId){
-    return res.status(401).json({ message: "Invalid User)" });
-    } 
+    if (userId !== decoudeUser.userId) {
+      return res.status(401).json({ message: "Invalid User)" });
+    }
     req.keyStore = keyStore;
     return next();
   } catch (error) {
@@ -58,10 +74,9 @@ const authentication = asyncHandler(async (req, res, next) => {
 
 const verifyJWT = async (token, keySecret) => {
   return await JWT.verify(token, keySecret);
-    
-}
+};
 module.exports = {
   createTokenPair,
   authentication,
-  verifyJWT
+  verifyJWT,
 };
