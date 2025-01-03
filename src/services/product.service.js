@@ -8,9 +8,9 @@ class ProductFactory {
   static async createProduct(type, payload) {
     switch (type) {
       case "Clothing":
-        return new Clothing(payload);
+        return new Clothing(payload).createProduct();
       case "Electronics":
-        return new Electronics(payload);
+        return new Electronics(payload).createProduct();
       default:
         throw new Error("Invalid product type");
     }
