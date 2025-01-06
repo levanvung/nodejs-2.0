@@ -4,16 +4,20 @@ const { product, clothing, electronic } = require("../models/product.model");
 
 // define Factory class to create product
 
+
 class ProductFactory {
+
+  static productRegistry = {}
+
+  static registerProduct(type, classRef) {
+    ProductFactory.productRegistry[type] = classRef;
+  }
   static async createProduct(type, payload) {
-    switch (type) {
-      case "Clothing":
-        return new Clothing(payload).createProduct();
-      case "Electronics":
-        return new Electronics(payload).createProduct();
-      default:
-        throw new Error("Invalid product type");
+    const productClass = ProductFactory.productRegistry[type];
+    if (!productClass) {
+      throw new Error(`Invalid product type ${type}`);
     }
+    return await new productClass(payload).createProduct();
   }
 }
 
@@ -78,4 +82,7 @@ class Electronics extends Product {
         return newProduct;
     }
   }
+  ProductFactory.registerProduct('Clothing', Clothing);
+  ProductFactory.registerProduct('Electronics', Electronics);
+
   module.exports = ProductFactory;
