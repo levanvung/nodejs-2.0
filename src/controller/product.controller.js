@@ -7,7 +7,10 @@ class ProductController {
       message: "Product created",
       metadata: await ProductService.createProduct(
         req.body.product_type,
-        req.body
+        {
+          ...req.body,
+          product_shop: req.user.userId,
+        }
       ),
     }).send(res);
   };

@@ -42,12 +42,12 @@ const authentication = asyncHandler(async (req, res, next) => {
   if (req.headers[HEADER.REFRESHTOKEN]) {
     try {
       const refreshToken = req.headers[HEADER.REFRESHTOKEN];
-      const decoudeUser = await JWT.verify(refreshToken, keyStore.privateKey);
-      if (userId !== decoudeUser.userId) {
+      const decodeUser = await JWT.verify(refreshToken, keyStore.privateKey);
+      if (userId !== decodeUser.userId) {
         return res.status(401).json({ message: "Invalid User)" });
       }
       req.keyStore = keyStore;
-      req.user = decoudeUser;
+      req.user = decodeUser;
       req.refreshToken = refreshToken;
       return next();
     } catch (error) {
@@ -61,11 +61,12 @@ const authentication = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    const decoudeUser = await JWT.verify(accessToken, keyStore.publicKey);
-    if (userId !== decoudeUser.userId) {
+    const decodeUser = await JWT.verify(accessToken, keyStore.publicKey);
+    if (userId !== decodeUser.userId) {
       return res.status(401).json({ message: "Invalid User)" });
     }
     req.keyStore = keyStore;
+    req.user = decodeUser;
     return next();
   } catch (error) {
     return res.status(401).json({ message: "Access token is invalid)" });
