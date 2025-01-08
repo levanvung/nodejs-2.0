@@ -27,6 +27,16 @@ class ProductController {
       }),
     }).send(res);
   };
+
+
+  getAllPushlishedForShop = async (req, res, next) => {
+    new OK({
+      message: "get All published products",
+      metadata: await ProductService.getProductPushlist({
+        product_shop: req.user.userId,
+      }),
+    }).send(res);
+  };
   // END QUERY //
 }
 

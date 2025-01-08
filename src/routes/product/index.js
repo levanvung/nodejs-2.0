@@ -9,4 +9,6 @@ router.use(authentication)
 router.post('/product/create', asyncHandler(productController.createProduct))
 
 router.get('/product/draft', asyncHandler(productController.getAllDraftForShop))
+router.get('/product/published', asyncHandler(productController.getAllPushlishedForShop))
+
 module.exports = router

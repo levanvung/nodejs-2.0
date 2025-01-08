@@ -1,7 +1,7 @@
 "use-strict";
 
 const { product, clothing, electronic } = require("../models/product.model");
-const {findAllDraftsForShop} = require("../models/repositories/product.repo");
+const {findAllDraftsForShop, publishProductForShop, findAllPushlishForShop} = require("../models/repositories/product.repo");
 // define Factory class to create product
 
 
@@ -20,9 +20,24 @@ class ProductFactory {
     return await new productClass(payload).createProduct();
   }
 
+// PUSHLISH PRODUCT
+
+static async publishProduct({product_id, product_shop}) {
+  return await publishProductForShop({product_id, product_shop});
+}
+
+
+// GET DRAFTS PRODUCTS
   static async getProductDrafts({product_shop, limit = 50 , skip = 0 }) {
     const query =  { product_shop, isDraft: true };
     return await findAllDraftsForShop({ query, limit, skip });
+  }
+
+  // get published products
+
+  static async getProductPushlist({product_shop, limit = 50 , skip = 0 }) {
+    const query =  { product_shop, isPublished: true };
+    return await findAllPushlishForShop({ query, limit, skip });
   }
 }
 
