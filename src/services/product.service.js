@@ -1,7 +1,7 @@
 "use-strict";
 
 const { product, clothing, electronic } = require("../models/product.model");
-
+const {findAllDraftsForShop} = require("../models/repositories/product.repo");
 // define Factory class to create product
 
 
@@ -18,6 +18,11 @@ class ProductFactory {
       throw new Error(`Invalid product type ${type}`);
     }
     return await new productClass(payload).createProduct();
+  }
+
+  static async getProductDrafts({product_shop, limit = 50 , skip = 0 }) {
+    const query =  { product_shop, isDraft: true };
+    return await findAllDraftsForShop({ query, limit, skip });
   }
 }
 

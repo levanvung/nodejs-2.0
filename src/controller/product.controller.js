@@ -14,6 +14,20 @@ class ProductController {
       ),
     }).send(res);
   };
+
+  //QUERY // 
+/**
+ * @description get all draft products
+ */
+  getAllDraftForShop = async (req, res, next) => {
+    new OK({
+      message: "get All draft products",
+      metadata: await ProductService.getProductDrafts({
+        product_shop: req.user.userId,
+      }),
+    }).send(res);
+  };
+  // END QUERY //
 }
 
 module.exports = new ProductController();
