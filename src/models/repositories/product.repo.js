@@ -17,7 +17,7 @@ const publishProductForShop = async ({ product_id, product_shop }) => {
   foundShop.isDraft = false;
   foundShop.isPublished = true;
   const { modifiedCount } = await foundShop.updateOne(foundShop);
-  return modifiedCount
+  return modifiedCount;
 };
 const UnpublishProductForShop = async ({ product_id, product_shop }) => {
   const foundShop = await product.findOne({
@@ -28,7 +28,7 @@ const UnpublishProductForShop = async ({ product_id, product_shop }) => {
   foundShop.isDraft = true;
   foundShop.isPublished = false;
   const { modifiedCount } = await foundShop.updateOne(foundShop);
-  return modifiedCount
+  return modifiedCount;
 };
 const queryProduct = async ({ query, limit, skip }) => {
   return await product
@@ -39,5 +39,30 @@ const queryProduct = async ({ query, limit, skip }) => {
     .limit(limit)
     .lean()
     .exec();
-}
-module.exports = { findAllDraftsForShop, publishProductForShop, findAllPushlishForShop, UnpublishProductForShop };
+};
+
+const searchProductByUser = async ({ keySearch, limit, skip }) => {
+  if (typeof keySearch !== 'string') {
+    throw new Error("keySearch phải là một chuỗi");
+  }
+  const regexSearch = new RegExp(keySearch);
+  const results = await product
+  .find({
+    isDraft: false,
+    $text: { $search: regexSearch }
+  },
+  { score: { $meta: "textScore" } })
+  .sort({ score: { $meta: "textScore" } })
+  .limit(limit)
+  .lean()
+  .exec()
+   
+  return results;
+};
+module.exports = {
+  findAllDraftsForShop,
+  publishProductForShop,
+  findAllPushlishForShop,
+  UnpublishProductForShop,
+  searchProductByUser
+};
