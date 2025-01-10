@@ -15,6 +15,19 @@ class ProductController {
     }).send(res);
   };
 
+
+publishOneProduct = async (req, res, next) => {
+  new CREATED({
+    message: "Product published",
+    metadata: await ProductService.publishProduct({
+      product_id: req.params.id,
+      product_shop: req.user.userId,
+    }  
+    ),
+  }).send(res);
+}
+
+
   //QUERY // 
 /**
  * @description get all draft products

@@ -16,7 +16,7 @@ const publishProductForShop = async ({ product_id, product_shop }) => {
   if (!foundShop) throw new Error("Product not found");
   foundShop.isDraft = false;
   foundShop.isPublished = true;
-  const { modifiedCount } = await foundShop.update(foundShop);
+  const { modifiedCount } = await foundShop.updateOne(foundShop);
   return modifiedCount
 };
 

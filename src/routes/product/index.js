@@ -7,6 +7,9 @@ const router = express.Router()
 router.use(authentication)
 // create product 
 router.post('/product/create', asyncHandler(productController.createProduct))
+router.post('/product/published/:id', asyncHandler(productController.publishOneProduct))
+
+
 
 router.get('/product/draft', asyncHandler(productController.getAllDraftForShop))
 router.get('/product/published', asyncHandler(productController.getAllPushlishedForShop))
