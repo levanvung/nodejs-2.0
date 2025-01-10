@@ -1,7 +1,7 @@
 "use-strict";
 
 const { product, clothing, electronic } = require("../models/product.model");
-const {findAllDraftsForShop, publishProductForShop, findAllPushlishForShop} = require("../models/repositories/product.repo");
+const {findAllDraftsForShop, publishProductForShop, findAllPushlishForShop, UnpublishProductForShop} = require("../models/repositories/product.repo");
 // define Factory class to create product
 
 
@@ -24,6 +24,9 @@ class ProductFactory {
 
 static async publishProduct({product_id, product_shop}) {
   return await publishProductForShop({product_id, product_shop});
+}
+static async unPublishProduct({product_id, product_shop}) {
+  return await UnpublishProductForShop({product_id, product_shop});
 }
 
 

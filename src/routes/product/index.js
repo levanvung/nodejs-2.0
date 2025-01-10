@@ -8,6 +8,7 @@ router.use(authentication)
 // create product 
 router.post('/product/create', asyncHandler(productController.createProduct))
 router.post('/product/published/:id', asyncHandler(productController.publishOneProduct))
+router.post('/product/unpublished/:id', asyncHandler(productController.unPublishOneProduct))
 
 
 

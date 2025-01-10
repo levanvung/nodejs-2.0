@@ -26,6 +26,16 @@ publishOneProduct = async (req, res, next) => {
     ),
   }).send(res);
 }
+unPublishOneProduct = async (req, res, next) => {
+  new CREATED({
+    message: "Product UnPublished",
+    metadata: await ProductService.unPublishProduct({
+      product_id: req.params.id,
+      product_shop: req.user.userId,
+    }  
+    ),
+  }).send(res);
+}
 
 
   //QUERY // 
