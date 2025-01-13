@@ -8,6 +8,7 @@ const {
   searchProductByUser,
   UnpublishProductForShop,
   findAllProducts,
+  findProduct,
 } = require("../models/repositories/product.repo");
 // define Factory class to create product
 
@@ -65,11 +66,15 @@ class ProductFactory {
       sort,
       page,
       filter,
-      select: [
-        "product_name",
-        "product_thumb",
-        "product_price",
-      ],
+      select: ["product_name", "product_thumb", "product_price"],
+    });
+  }
+
+  //find one product
+  static async finOneProducts({ product_id }) {
+    return await findProduct({
+      product_id,
+      unSelect: ["__v"],
     });
   }
 }

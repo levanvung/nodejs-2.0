@@ -2,7 +2,7 @@
 
 const { product, clothing, electronic } = require("../../models/product.model");
 const { Types } = require("mongoose");
-const {getSelectData} = require("../../utils/index");
+const { getSelectData, unGetSelectData } = require("../../utils/index");
 const findAllDraftsForShop = async ({ query, limit, skip }) => {
   return await queryProduct({ query, limit, skip });
 };
@@ -32,18 +32,27 @@ const UnpublishProductForShop = async ({ product_id, product_shop }) => {
   return modifiedCount;
 };
 
-const  findAllProducts = async ({ limit, sort, page, filter, select }) => {
+const findAllProducts = async ({ limit, sort, page, filter, select }) => {
   const skip = (page - 1) * limit;
-  const sortBy = sort == 'ctime' ? { _id: -1 } : { id: 1 };
-  const products = await product.find( filter)
-  .sort(sortBy)
-  .skip(skip)
-  .limit(limit)
-  .select(getSelectData(select))
-  .lean()
-  
+  const sortBy = sort == "ctime" ? { _id: -1 } : { id: 1 };
+  const products = await product
+    .find(filter)
+    .sort(sortBy)
+    .skip(skip)
+    .limit(limit)
+    .select(getSelectData(select))
+    .lean();
+
   return products;
-}
+};
+
+const findProduct = async ({ unSelect, product_id }) => {
+  return await product
+    .findById(product_id)
+    .select(unGetSelectData(unSelect))
+    .lean()
+    .exec()
+};
 
 const queryProduct = async ({ query, limit, skip }) => {
   return await product
@@ -57,21 +66,23 @@ const queryProduct = async ({ query, limit, skip }) => {
 };
 
 const searchProductByUser = async ({ keySearch, limit, skip }) => {
-  if (typeof keySearch !== 'string') {
+  if (typeof keySearch !== "string") {
     throw new Error("keySearch phải là một chuỗi");
   }
   const regexSearch = new RegExp(keySearch);
   const results = await product
-  .find({
-    isDraft: false,
-    $text: { $search: regexSearch }
-  },
-  { score: { $meta: "textScore" } })
-  .sort({ score: { $meta: "textScore" } })
-  .limit(limit)
-  .lean()
-  .exec()
-   
+    .find(
+      {
+        isDraft: false,
+        $text: { $search: regexSearch },
+      },
+      { score: { $meta: "textScore" } }
+    )
+    .sort({ score: { $meta: "textScore" } })
+    .limit(limit)
+    .lean()
+    .exec();
+
   return results;
 };
 module.exports = {
@@ -80,5 +91,6 @@ module.exports = {
   findAllPushlishForShop,
   UnpublishProductForShop,
   searchProductByUser,
-  findAllProducts
+  findAllProducts,
+  findProduct
 };

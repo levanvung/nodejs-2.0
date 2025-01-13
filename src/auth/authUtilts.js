@@ -19,13 +19,16 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
     });
     JWT.verify(accessToken, publicKey, (err, decode) => {
       if (err) {
-        console.log("đây là lỗi", err);
+        console.log("Lỗi xác minh token:", err);
       } else {
-        console.log("đây là được", decode);
+        console.log("Token đã được giải mã thành công:", decode);
       }
     });
     return { accessToken, refreshToken };
-  } catch (error) {}
+  } catch (error) {
+    console.error("Lỗi tạo cặp token:", error);
+    throw error;
+  }
 };
 
 const authentication = asyncHandler(async (req, res, next) => {

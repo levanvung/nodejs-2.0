@@ -1,22 +1,22 @@
-'use strict'
-const {authentication} = require('../../auth/authUtilts')
-const express = require('express')
-const productController = require('../../controller/product.controller')
-const {asyncHandler} = require('../../helpers/asyncHandler')
-const router = express.Router()
+// product.router.js
+"use strict";
+const { authentication } = require("../../auth/authUtilts");
+const express = require("express");
+const productController = require("../../controller/product.controller");
+const { asyncHandler } = require("../../helpers/asyncHandler");
+const router = express.Router();
 
-router.get('/product/search/:keySearch', asyncHandler(productController.getListSearchProduct))
-router.get('/product/findAll', asyncHandler(productController.findAllProducts))
+// Các route công khai
+router.get("/product/search/:keySearch", asyncHandler(productController.getListSearchProduct));
+router.get("/product/findAll", asyncHandler(productController.findAllProducts));
+router.get("/product/findOne/:product_id", asyncHandler(productController.findOneProducts));
 
-router.use(authentication)
-// create product 
-router.post('/product/create', asyncHandler(productController.createProduct))
-router.post('/product/published/:id', asyncHandler(productController.publishOneProduct))
-router.post('/product/unpublished/:id', asyncHandler(productController.unPublishOneProduct))
+// Các route bảo vệ
+router.post("/product/create", authentication, asyncHandler(productController.createProduct));
+router.post("/product/published/:id", authentication, asyncHandler(productController.publishOneProduct));
+router.post("/product/unpublished/:id", authentication, asyncHandler(productController.unPublishOneProduct));
 
+router.get("/product/draft", authentication, asyncHandler(productController.getAllDraftForShop));
+router.get("/product/published", authentication, asyncHandler(productController.getAllPushlishedForShop));
 
-
-router.get('/product/draft', asyncHandler(productController.getAllDraftForShop))
-router.get('/product/published', asyncHandler(productController.getAllPushlishedForShop))
-
-module.exports = router
+module.exports = router;
