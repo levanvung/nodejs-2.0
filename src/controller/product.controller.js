@@ -60,6 +60,13 @@ class ProductController {
     }).send(res);
   };
   // END QUERY //
+
+  findAllProducts = async (req, res, next) => {
+    new OK({
+      message: "get all products",
+      metadata: await ProductService.findAllProducts(req.query),
+    }).send(res);
+  };
 }
 
 module.exports = new ProductController();

@@ -6,6 +6,7 @@ const {asyncHandler} = require('../../helpers/asyncHandler')
 const router = express.Router()
 
 router.get('/product/search/:keySearch', asyncHandler(productController.getListSearchProduct))
+router.get('/product/findAll', asyncHandler(productController.findAllProducts))
 
 router.use(authentication)
 // create product 
