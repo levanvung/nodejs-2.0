@@ -1,7 +1,7 @@
 "use-strict";
 
 const { product, clothing, electronic } = require("../../models/product.model");
-const { Types } = require("mongoose");
+const { Types, model } = require("mongoose");
 const { getSelectData, unGetSelectData } = require("../../utils/index");
 const findAllDraftsForShop = async ({ query, limit, skip }) => {
   return await queryProduct({ query, limit, skip });
@@ -85,6 +85,14 @@ const searchProductByUser = async ({ keySearch, limit, skip }) => {
 
   return results;
 };
+
+const updateProductById = async ({ product_id, bodyUpdate, model }) => {
+  return await model.findByIdAndUpdate(
+    product_id,
+    { $set: bodyUpdate },
+    { new: true }
+  );
+};
 module.exports = {
   findAllDraftsForShop,
   publishProductForShop,
@@ -92,5 +100,6 @@ module.exports = {
   UnpublishProductForShop,
   searchProductByUser,
   findAllProducts,
-  findProduct
+  findProduct,
+  updateProductById
 };

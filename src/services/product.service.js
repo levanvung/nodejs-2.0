@@ -9,6 +9,7 @@ const {
   UnpublishProductForShop,
   findAllProducts,
   findProduct,
+  updateProductById
 } = require("../models/repositories/product.repo");
 // define Factory class to create product
 
@@ -25,7 +26,13 @@ class ProductFactory {
     }
     return await new productClass(payload).createProduct();
   }
-
+static async updateProduct(type, productId, payload) {
+  const productClass = ProductFactory.productRegistry[type];
+  if (!productClass) {
+    throw new Error(`Invalid product type ${type}`);
+  }
+  return await productClass.updateProduct(productId, payload);
+}
   // PUSHLISH PRODUCT
 
   static async publishProduct({ product_id, product_shop }) {
@@ -103,11 +110,18 @@ class Product {
   async createProduct(product_id) {
     return await product.create({ ...this, _id: product_id });
   }
+
+  //update Product
+
+  async updateProduct(product_id, bodyUpdate){
+    return await updateProductById({product_id, bodyUpdate, model:product})
+  }
 }
 
 // Defind sub-class for differrent product types clothing
 
 class Clothing extends Product {
+
   async createProduct() {
     const newClothing = await clothing.create({
       ...this.product_attributes,
@@ -121,6 +135,15 @@ class Clothing extends Product {
       throw new Error("Cannot create new product");
     }
     return newProduct;
+  }
+
+  async updateProduct(product_id) {
+    const objectParams = this;
+    if (objectParams.product_attributes) {
+      await updateProductById({ product_id, objectParams, model: clothing });
+    }
+    const updateProduct = await super.updateProduct(product_id, objectParams);
+    return updateProduct;
   }
 }
 class Electronics extends Product {
