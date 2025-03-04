@@ -18,6 +18,6 @@ router.post("/product/unpublished/:id", authentication, asyncHandler(productCont
 
 router.get("/product/draft", authentication, asyncHandler(productController.getAllDraftForShop));
 router.get("/product/published", authentication, asyncHandler(productController.getAllPushlishedForShop));
-router.patch("/product/update/:product_id", authentication, asyncHandler(productController.updateProduct));
+router.patch("/product/update/:productId", authentication, asyncHandler(productController.updateProduct));
 
 module.exports = router;

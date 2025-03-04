@@ -31,7 +31,7 @@ static async updateProduct(type, productId, payload) {
   if (!productClass) {
     throw new Error(`Invalid product type ${type}`);
   }
-  return await productClass.updateProduct(productId, payload);
+  return await new productClass(payload).updateProduct(productId);
 }
   // PUSHLISH PRODUCT
 
@@ -114,7 +114,7 @@ class Product {
   //update Product
 
   async updateProduct(product_id, bodyUpdate){
-    return await updateProductById({product_id, bodyUpdate, model:product})
+    return await updateProductById({product_id, bodyUpdate,model:product})
   }
 }
 
@@ -137,12 +137,12 @@ class Clothing extends Product {
     return newProduct;
   }
 
-  async updateProduct(product_id) {
+  async updateProduct(productId) {
     const objectParams = this;
     if (objectParams.product_attributes) {
-      await updateProductById({ product_id, objectParams, model: clothing });
+      await updateProductById({ productId, objectParams, model: clothing });
     }
-    const updateProduct = await super.updateProduct(product_id, objectParams);
+    const updateProduct = await super.updateProduct(productId, objectParams);
     return updateProduct;
   }
 }
