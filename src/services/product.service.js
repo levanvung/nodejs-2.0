@@ -1,6 +1,7 @@
 "use-strict";
 
 const { product, clothing, electronic } = require("../models/product.model");
+const { insertInventory } = require("../models/repositories/inventory.repo");
 const {
   findAllDraftsForShop,
   publishProductForShop,
@@ -109,7 +110,15 @@ class Product {
   }
 
   async createProduct(product_id) {
-    return await product.create({ ...this, _id: product_id });
+    const newProduct = await product.create({...this, _id:product_id})
+    if(newProduct){
+      await insertInventory({
+        productId: newProduct._id,
+        stock:this.product_quantity,
+        shopId: this.product_shop,
+      })
+    }
+    return newProduct
   }
 
   //update Product
@@ -164,7 +173,19 @@ class Electronics extends Product {
     }
     return newProduct;
   }
-}
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: electronic});
+      }
+      const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+      return updateProduct
+      };
+    }
+
 ProductFactory.registerProduct("Clothing", Clothing);
 ProductFactory.registerProduct("Electronics", Electronics);
 
