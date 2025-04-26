@@ -17,6 +17,8 @@ class Database {
     mongoose
       .connect(connectString, {
         maxPoolSize: 50,
+        family: 4,               //  dùng IPv4
+        serverSelectionTimeoutMS: 5000
       })
       .then((_) => console.log(`Connected Mongodb Success`))
       .catch((err) => console.log(`MongoDB Connect Error:`, err));    }

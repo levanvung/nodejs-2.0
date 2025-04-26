@@ -1,6 +1,6 @@
 "use-strict";
 
-const { product, clothing, electronic } = require("../models/product.model");
+const { product, clothing, electronic, laptop, iphone, airport } = require("../models/product.model");
 const { insertInventory } = require("../models/repositories/inventory.repo");
 const {
   findAllDraftsForShop,
@@ -92,6 +92,7 @@ class Product {
   constructor({
     product_name,
     product_thumb,
+    product_images,
     product_description,
     product_price,
     product_quantity,
@@ -101,15 +102,24 @@ class Product {
   }) {
     this.product_name = product_name;
     this.product_thumb = product_thumb;
+    this.product_images = product_images || []; // Array of additional product images
     this.product_description = product_description;
     this.product_price = product_price;
     this.product_quantity = product_quantity;
     this.product_type = product_type;
     this.product_shop = product_shop;
     this.product_attributes = product_attributes;
+    // Mặc định publish sản phẩm ngay khi tạo
+    this.isDraft = false;
+    this.isPublished = true;
   }
 
   async createProduct(product_id) {
+    // Validate images limit
+    if (this.product_images && this.product_images.length > 5) {
+      throw new Error("Không thể tải lên quá 5 ảnh cho sản phẩm");
+    }
+    
     const newProduct = await product.create({...this, _id:product_id})
     if(newProduct){
       await insertInventory({
@@ -186,7 +196,97 @@ class Electronics extends Product {
       };
     }
 
+class Laptop extends Product {
+  async createProduct() {
+    const newLaptop = await laptop.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newLaptop) {
+      throw new Error("Cannot create new laptop");
+    }
+    const newProduct = await super.createProduct(newLaptop._id);
+    if (!newProduct) {
+      throw new Error("Cannot create new product");
+    }
+    return newProduct;
+  }
+  
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: laptop});
+    }
+    const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+    return updateProduct;
+  }
+}
+
+class IPhone extends Product {
+  async createProduct() {
+    const newIPhone = await iphone.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newIPhone) {
+      throw new Error("Cannot create new iPhone");
+    }
+    const newProduct = await super.createProduct(newIPhone._id);
+    if (!newProduct) {
+      throw new Error("Cannot create new product");
+    }
+    return newProduct;
+  }
+  
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: iphone});
+    }
+    const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+    return updateProduct;
+  }
+}
+
+class AirPort extends Product {
+  async createProduct() {
+    const newAirPort = await airport.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newAirPort) {
+      throw new Error("Cannot create new AirPort");
+    }
+    const newProduct = await super.createProduct(newAirPort._id);
+    if (!newProduct) {
+      throw new Error("Cannot create new product");
+    }
+    return newProduct;
+  }
+  
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: airport});
+    }
+    const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+    return updateProduct;
+  }
+}
+
 ProductFactory.registerProduct("Clothing", Clothing);
 ProductFactory.registerProduct("Electronics", Electronics);
+ProductFactory.registerProduct("Laptop", Laptop);
+ProductFactory.registerProduct("iPhone", IPhone);
+ProductFactory.registerProduct("AirPort", AirPort);
 
 module.exports = ProductFactory;

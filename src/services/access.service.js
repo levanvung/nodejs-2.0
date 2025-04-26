@@ -2,7 +2,7 @@
 const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const KeyTokenService = require("./keytoken.service");
+const KeyTokenService = require("./keyToken.service");
 const { createTokenPair, verifyJWT } = require("../auth/authUtilts");
 const { getInfoData } = require("../utils");
 const { BadRequestError, ConflictError } = require("../core/error.response");
@@ -43,12 +43,12 @@ class AccessService {
       },
     });
     return {
-      user ,
+      user: getInfoData({
+        fileds: ["_id", "name", "email", "roles"],
+        object: foundShop,
+      }),
       tokens,
     };
-   
-
-
   };
   // dang xuat
 
@@ -82,7 +82,7 @@ class AccessService {
     });
     return {
       shop: getInfoData({
-        fileds: ["_id", "name", "email"],
+        fileds: ["_id", "name", "email", "roles"],
         object: foundShop,
       }),
       tokens,
@@ -90,7 +90,7 @@ class AccessService {
   };
 
   //đăng ký
-  static signUp = async ({ name, email, password }) => {
+  static signUp = async ({ name, email, password, roles = [RoleShop.SHOP] }) => {
     // try {
     // check email exist
     const holderShop = await shopModel.findOne({ email }).lean();
@@ -100,13 +100,13 @@ class AccessService {
 
     // hash password
     const hashPassword = await bcrypt.hash(password, 10);
-
+    
     // create shop
     const newShop = await shopModel.create({
       name,
       email,
       password: hashPassword,
-      roles: [RoleShop.SHOP],
+      roles: roles,
     });
 
     if (newShop) {
@@ -140,9 +140,6 @@ class AccessService {
       if (!keyStore) {
         throw new ConflictError("Tạo key thất bại");
       }
-      // const publicKeyObject = crypto.createPublicKey(publicKeyString);
-
-      // console.log(publicKeyObject, " publicKeyObject 22222222222222");
 
       const tokens = await createTokenPair(
         { userId: newShop._id, email },
@@ -155,18 +152,13 @@ class AccessService {
         code: "201",
         metadata: {
           shop: getInfoData({
-            fileds: ["_id", "name", "email"],
+            fileds: ["_id", "name", "email", "roles"],
             object: newShop,
           }),
           tokens,
         },
       };
     }
-
-    // return {
-    //   code: 201,
-    //   metadata: null,
-    // };
     // } catch (error) {
     //   return {
     //     code: "xxx",

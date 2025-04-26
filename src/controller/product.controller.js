@@ -64,13 +64,45 @@ class ProductController {
     }).send(res);
   };
 
+  // Phương thức mới để lấy tất cả sản phẩm đã publish (công khai)
+  getAllPublishedProducts = async (req, res, next) => {
+    new OK({
+      message: "get All published products",
+      metadata: await ProductService.findAllProducts({
+        limit: req.query.limit || 50,
+        sort: req.query.sort || 'ctime',
+        page: req.query.page || 1,
+        filter: { isPublished: true }
+      }),
+    }).send(res);
+  };
+
+  // Phương thức mới gộp cả search và findAll
+  searchProducts = async (req, res, next) => {
+    const keySearch = req.params.keySearch;
+    
+    if (keySearch) {
+      // Nếu có từ khóa tìm kiếm, thực hiện tìm kiếm
+      new OK({
+        message: "search success",
+        metadata: await ProductService.searchProduct({ keySearch }),
+      }).send(res);
+    } else {
+      // Nếu không có từ khóa, lấy tất cả sản phẩm
+      new OK({
+        message: "get all products",
+        metadata: await ProductService.findAllProducts(req.query),
+      }).send(res);
+    }
+  };
+
+  // Các phương thức cũ giữ lại để đảm bảo khả năng tương thích ngược
   getListSearchProduct = async (req, res, next) => {
     new CREATED({
       message: "search success",
       metadata: await ProductService.searchProduct(req.params),
     }).send(res);
   };
-  // END QUERY //
 
   findAllProducts = async (req, res, next) => {
     new OK({

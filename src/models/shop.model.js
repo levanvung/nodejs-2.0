@@ -32,7 +32,7 @@ const ShopSchema = new Schema({
     roles:{
         type:Array,
         default: []
-    },
+    }
 },{
     timestamps: true,
     collection: COLLECTION_NAME
