@@ -43,6 +43,7 @@ const productSchema = new Schema(
       set: (val) => Math.round(val * 10) / 10,
     },
     product_variations : { type: Array, default: []},
+    product_hot: { type: Boolean, default: false, index: true },
     isDraft: { type: Boolean, default: true, index: true, select: false },
     isPublished: { type: Boolean, default: false, index: true, select: false },
   },

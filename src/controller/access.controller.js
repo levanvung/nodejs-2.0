@@ -12,7 +12,7 @@ class AcessController {
         keyStore: req.keyStore
       }),
     }).send(res)
-    }
+  }
 
   async logout(req, res, next) {
     new OK({

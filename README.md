@@ -140,3 +140,68 @@ Các API tìm kiếm sản phẩm (`searchProducts`, `findAllProducts`, `findOne
 
 - Trường `product_quantity` trong kết quả trả về là tổng số lượng sản phẩm được tạo ban đầu, **không phải** số lượng tồn kho hiện tại.
 - Sử dụng trường `stock_status` để hiển thị cho người dùng biết sản phẩm còn hàng hay đã hết. 
+
+# Thêm trường `product_hot` khi tạo/cập nhật sản phẩm
+
+Khi tạo hoặc cập nhật sản phẩm (API `/product/create` và `/product/update/:productId`), bạn có thể truyền thêm trường `product_hot`:
+
+```json
+{
+  "product_name": "Sản phẩm Mới",
+  "product_thumb": "link-anh-thumb.jpg",
+  "product_description": "Mô tả chi tiết",
+  "product_price": 150000,
+  "product_quantity": 50,
+  "product_type": "Electronics",
+  "product_attributes": { ... },
+  "product_images": ["link1.jpg", "link2.jpg"],
+  "product_hot": true // <-- Thêm trường này (true hoặc false)
+}
+```
+
+- Nếu không truyền, `product_hot` mặc định là `false`.
+
+# API Lấy Danh Sách Sản Phẩm Hot
+
+API này trả về danh sách các sản phẩm được đánh dấu là hot (`product_hot: true`) và đã được publish.
+
+## URL
+```
+GET http://localhost:3055/v1/api/product/hot
+```
+
+## Query Parameters (Tùy chọn)
+
+- `limit` (Number): Số lượng sản phẩm trên mỗi trang (mặc định: 10).
+- `page` (Number): Trang hiện tại (mặc định: 1).
+
+Ví dụ: `http://localhost:3055/v1/api/product/hot?limit=20&page=2`
+
+## Headers
+
+Không yêu cầu header đặc biệt (API công khai).
+
+## Kết quả trả về
+
+Trả về một mảng các sản phẩm hot, mỗi sản phẩm có cấu trúc tương tự như trong API search, bao gồm cả trường `stock_status`.
+
+```json
+[
+  {
+    "_id": "...",
+    "product_name": "Sản phẩm Hot 1",
+    "product_thumb": "...",
+    "product_images": [],
+    "product_price": 200000,
+    "product_type": "Clothing",
+    "product_shop": "...",
+    "stock_status": "in_stock"
+  },
+  {
+    "_id": "...",
+    "product_name": "Sản phẩm Hot 2",
+    ...
+    "stock_status": "out_of_stock"
+  }
+]
+``` 

@@ -10,7 +10,8 @@ const {
   UnpublishProductForShop,
   findAllProducts,
   findProduct,
-  updateProductById
+  updateProductById,
+  findHotProducts
 } = require("../models/repositories/product.repo");
 const { removeUndefindObject, updateNestedObjectParser } = require("../utils");
 // define Factory class to create product
@@ -69,22 +70,32 @@ static async updateProduct(type, productId, payload) {
     sort = "ctime",
     page = 1,
     filter = { isPublished: true },
+    select = ["product_name", "product_thumb", "product_price"]
   }) {
+    const defaultSelect = ["product_name", "product_thumb", "product_price"];
+    const finalSelect = select && select.length > 0 ? select : defaultSelect;
+
     return await findAllProducts({
       limit,
       sort,
       page,
       filter,
-      select: ["product_name", "product_thumb", "product_price"],
+      select: finalSelect,
     });
   }
 
   //find one product
-  static async finOneProducts({ product_id }) {
+  static async findOneProduct({ product_id }) {
     return await findProduct({
       product_id,
       unSelect: ["__v"],
     });
+  }
+
+  // HÀM MỚI: Lấy danh sách sản phẩm hot
+  static async findHotProducts({ limit = 10, page = 1 }) {
+    const skip = (page - 1) * limit;
+    return await findHotProducts({ limit, skip });
   }
 }
 
@@ -99,6 +110,7 @@ class Product {
     product_type,
     product_shop,
     product_attributes,
+    product_hot
   }) {
     this.product_name = product_name;
     this.product_thumb = product_thumb;
@@ -109,7 +121,8 @@ class Product {
     this.product_type = product_type;
     this.product_shop = product_shop;
     this.product_attributes = product_attributes;
-    // Mặc định publish sản phẩm ngay khi tạo
+    this.product_hot = product_hot ?? false; // Gán giá trị, mặc định là false
+    // Mặc định publish sản phẩm ngay khi tạo (có thể điều chỉnh logic này nếu cần)
     this.isDraft = false;
     this.isPublished = true;
   }

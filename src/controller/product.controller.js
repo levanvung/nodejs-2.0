@@ -114,7 +114,18 @@ class ProductController {
   findOneProducts = async (req, res, next) => {
     new OK({
       message: "get detail products",
-      metadata: await ProductService.finOneProducts({product_id: req.params.product_id})
+      metadata: await ProductService.findOneProduct({product_id: req.params.product_id})
+    }).send(res);
+  };
+
+  // HÀM MỚI: Lấy danh sách sản phẩm hot
+  getHotProducts = async (req, res, next) => {
+    new OK({
+      message: "Get Hot Products Success!",
+      metadata: await ProductService.findHotProducts({
+          limit: parseInt(req.query.limit) || 10,
+          page: parseInt(req.query.page) || 1
+      }),
     }).send(res);
   };
 }

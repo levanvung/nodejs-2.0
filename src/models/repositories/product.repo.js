@@ -178,6 +178,31 @@ const updateProductQuantity = async ({ productId, quantity }) => {
   );
 };
 
+// Tìm các sản phẩm hot
+const findHotProducts = async ({ limit = 10, skip = 0 }) => {
+  const query = { isPublished: true, product_hot: true };
+  const products = await product
+    .find(query)
+    .sort({ updatedAt: -1 }) // Sắp xếp theo cập nhật mới nhất (có thể thay đổi)
+    .skip(skip)
+    .limit(limit)
+    .select('product_name product_thumb product_images product_price product_type product_shop product_attributes product_description') // Thêm product_attributes và product_description
+    .lean()
+    .exec();
+
+  // Bổ sung thông tin trạng thái tồn kho
+  const productsWithStockStatus = await Promise.all(products.map(async (prod) => {
+    const stockInfo = await checkProductStock({ productId: prod._id, quantity: 1 });
+    let stock_status = 'in_stock';
+    if (!stockInfo || stockInfo.availableStock <= 0) {
+      stock_status = 'out_of_stock';
+    }
+    return { ...prod, stock_status };
+  }));
+
+  return productsWithStockStatus;
+};
+
 module.exports = {
   findAllDraftsForShop,
   publishProductForShop,
@@ -187,5 +212,6 @@ module.exports = {
   findAllProducts,
   findProduct,
   updateProductById,
-  updateProductQuantity
+  updateProductQuantity,
+  findHotProducts
 };
