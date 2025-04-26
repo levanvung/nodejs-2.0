@@ -56,7 +56,17 @@ class CartController {
         new OK({
             message: 'Checkout completed successfully',
             metadata: await CartService.checkout({
-                userId: req.user.userId
+                userId: req.user.userId,
+                productIds: req.body.productIds || [], // Danh sách sản phẩm cần thanh toán
+                customerInfo: {
+                    name: req.body.name,
+                    email: req.body.email,
+                    phone: req.body.phone,
+                    address: req.body.address,
+                    city: req.body.city,
+                    zipCode: req.body.zipCode,
+                    note: req.body.note
+                }
             })
         }).send(res)
     }

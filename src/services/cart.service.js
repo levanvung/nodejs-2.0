@@ -5,6 +5,8 @@ const { BadRequestError, NotFoundError } = require('../core/error.response')
 const { findProduct, updateProductQuantity } = require('../models/repositories/product.repo')
 const { product } = require('../models/product.model')
 const { checkProductStock, reduceProductStock } = require('../models/repositories/inventory.repo')
+const { sendEmail, generateOrderConfirmationEmail } = require('../helpers/email.helper')
+const shopModel = require('../models/shop.model') // Thêm import để lấy thông tin người dùng
 
 class CartService {
     // Thêm sản phẩm vào giỏ hàng
@@ -278,15 +280,57 @@ class CartService {
     }
 
     // Thực hiện thanh toán giỏ hàng
-    static async checkout({ userId }) {
+    static async checkout({ 
+        userId, 
+        productIds = [],
+        customerInfo = {} // Thông tin khách hàng bổ sung
+    }) {
         // Lấy giỏ hàng hiện tại
         const userCart = await cartModel.findOne({ userId });
         if (!userCart || userCart.products.length === 0) {
             throw new BadRequestError('Cart is empty');
         }
 
-        // Kiểm tra số lượng trong kho cho tất cả sản phẩm
-        for (const item of userCart.products) {
+        // Lấy thông tin người dùng từ database
+        const userInfo = await shopModel.findById(userId);
+        if (!userInfo) {
+            throw new NotFoundError('User not found');
+        }
+
+        // Kết hợp thông tin từ database và thông tin được cung cấp
+        const shippingInfo = {
+            name: customerInfo.name || userInfo.name || 'Khách hàng',
+            email: customerInfo.email || userInfo.email || '',
+            phone: customerInfo.phone || '',
+            address: customerInfo.address || '',
+            city: customerInfo.city || '',
+            zipCode: customerInfo.zipCode || '',
+            note: customerInfo.note || ''
+        };
+
+        // Xác định sản phẩm cần thanh toán
+        let productsToCheckout = [];
+        
+        // Nếu có danh sách productIds, chỉ thanh toán những sản phẩm trong danh sách
+        if (productIds && productIds.length > 0) {
+            // Chuyển đổi productIds thành các string để dễ so sánh
+            const productIdStrings = productIds.map(id => id.toString());
+            
+            // Lọc sản phẩm cần thanh toán từ giỏ hàng
+            productsToCheckout = userCart.products.filter(item => 
+                productIdStrings.includes(item.productId.toString())
+            );
+            
+            if (productsToCheckout.length === 0) {
+                throw new BadRequestError('Không tìm thấy sản phẩm nào để thanh toán');
+            }
+        } else {
+            // Nếu không có danh sách cụ thể, thanh toán toàn bộ giỏ hàng
+            productsToCheckout = userCart.products;
+        }
+
+        // Kiểm tra số lượng trong kho cho tất cả sản phẩm cần thanh toán
+        for (const item of productsToCheckout) {
             const stockCheck = await checkProductStock({
                 productId: item.productId,
                 quantity: item.quantity
@@ -304,26 +348,63 @@ class CartService {
             }
         }
 
-        // Giảm số lượng trong kho sau khi kiểm tra
-        for (const item of userCart.products) {
+        // Giảm số lượng trong kho cho sản phẩm cần thanh toán
+        for (const item of productsToCheckout) {
             await reduceProductStock({
                 productId: item.productId,
                 quantity: item.quantity
             });
         }
 
-        // Xóa giỏ hàng sau khi thanh toán
+        // Tính tổng tiền đơn hàng
+        const totalAmount = productsToCheckout.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
+
+        // Gửi email xác nhận đơn hàng
+        if (shippingInfo.email) {
+            const emailTemplate = generateOrderConfirmationEmail({
+                customerName: shippingInfo.name,
+                orderItems: productsToCheckout,
+                totalAmount: totalAmount,
+                shippingInfo
+            });
+
+            // Gửi email
+            const emailResult = await sendEmail({
+                to: shippingInfo.email,
+                subject: 'Xác nhận đơn hàng của bạn',
+                html: emailTemplate
+            });
+
+            console.log('Email sending result:', emailResult);
+        }
+
+        // Xóa sản phẩm đã thanh toán khỏi giỏ hàng
+        const productIdsToRemove = productsToCheckout.map(item => item.productId);
+        
         await cartModel.findOneAndUpdate(
             { userId },
             { 
-                $set: { 
-                    products: [],
-                    modifiedOn: new Date() 
-                }
+                $pull: { 
+                    products: { 
+                        productId: { $in: productIdsToRemove } 
+                    } 
+                },
+                $set: { modifiedOn: new Date() }
             }
         );
 
-        return { success: true, message: 'Checkout completed successfully' };
+        return { 
+            success: true, 
+            message: 'Checkout completed successfully',
+            orderInfo: {
+                totalAmount,
+                itemCount: productsToCheckout.length,
+                shippingInfo
+            },
+            emailSent: shippingInfo.email ? true : false 
+        };
     }
 }
 

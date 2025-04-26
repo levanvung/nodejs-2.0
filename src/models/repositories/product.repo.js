@@ -3,6 +3,8 @@
 const { product, clothing, electronic } = require("../../models/product.model");
 const { Types, model } = require("mongoose");
 const { getSelectData, unGetSelectData } = require("../../utils/index");
+const { checkProductStock } = require("../repositories/inventory.repo");
+
 const findAllDraftsForShop = async ({ query, limit, skip }) => {
   return await queryProduct({ query, limit, skip });
 };
@@ -47,23 +49,44 @@ const findAllProducts = async ({ limit, sort, page, filter, select }) => {
     .skip(skip)
     .limit(limit)
     .select(getSelectData(select))
-    .select('isDraft isPublished')
+    .select('isDraft isPublished product_quantity')
     .lean();
 
-  return products;
+  // Bổ sung thông tin trạng thái tồn kho
+  const productsWithStockStatus = await Promise.all(products.map(async (prod) => {
+    const stockInfo = await checkProductStock({ productId: prod._id, quantity: 1 });
+    let stock_status = 'in_stock';
+    if (!stockInfo || stockInfo.availableStock <= 0) {
+        stock_status = 'out_of_stock';
+    }
+    return { ...prod, stock_status };
+  }));
+
+  return productsWithStockStatus;
 };
 
 const findProduct = async ({ unSelect, product_id }) => {
-  return await product
+  const foundProduct = await product
     .findById(product_id)
     .select(unGetSelectData(unSelect))
-    .select('isDraft isPublished product_shop product_name product_price product_thumb product_images')
+    .select('isDraft isPublished product_shop product_name product_price product_thumb product_images product_quantity')
     .lean()
-    .exec()
+    .exec();
+
+  if (!foundProduct) return null;
+
+  // Bổ sung thông tin trạng thái tồn kho
+  const stockInfo = await checkProductStock({ productId: foundProduct._id, quantity: 1 });
+  let stock_status = 'in_stock';
+  if (!stockInfo || stockInfo.availableStock <= 0) {
+      stock_status = 'out_of_stock';
+  }
+
+  return { ...foundProduct, stock_status };
 };
 
 const queryProduct = async ({ query, limit, skip }) => {
-  return await product
+  const products = await product
     .find(query)
     .populate("product_shop", "name email -_id")
     .select('product_name product_thumb product_images product_description product_price product_quantity product_type product_shop product_attributes isDraft isPublished createdAt updatedAt')
@@ -72,6 +95,18 @@ const queryProduct = async ({ query, limit, skip }) => {
     .limit(limit)
     .lean()
     .exec();
+
+  // Bổ sung thông tin trạng thái tồn kho
+  const productsWithStockStatus = await Promise.all(products.map(async (prod) => {
+    const stockInfo = await checkProductStock({ productId: prod._id, quantity: 1 });
+    let stock_status = 'in_stock';
+    if (!stockInfo || stockInfo.availableStock <= 0) {
+        stock_status = 'out_of_stock';
+    }
+    return { ...prod, stock_status };
+  }));
+
+  return productsWithStockStatus;
 };
 
 const searchProductByUser = async ({ keySearch, limit = 50, skip = 0 }) => {
@@ -113,7 +148,17 @@ const searchProductByUser = async ({ keySearch, limit = 50, skip = 0 }) => {
     .lean()
     .exec();
 
-  return results;
+  // Bổ sung thông tin trạng thái tồn kho
+  const resultsWithStockStatus = await Promise.all(results.map(async (prod) => {
+    const stockInfo = await checkProductStock({ productId: prod._id, quantity: 1 });
+    let stock_status = 'in_stock';
+    if (!stockInfo || stockInfo.availableStock <= 0) {
+        stock_status = 'out_of_stock';
+    }
+    return { ...prod, stock_status };
+  }));
+
+  return resultsWithStockStatus;
 };
 
 const updateProductById = async ({ product_id, bodyUpdate, model }) => {
