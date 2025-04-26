@@ -33,6 +33,12 @@ class ProductController {
     }).send(res);
   };
   unPublishOneProduct = async (req, res, next) => {
+    console.log('Unpublish controller called with:', {
+      id: req.params.id,
+      userId: req.user.userId,
+      productId: req.params.id
+    });
+    
     new CREATED({
       message: "Product UnPublished",
       metadata: await ProductService.unPublishProduct({

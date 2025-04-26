@@ -7,7 +7,7 @@ const {
   publishProductForShop,
   findAllPushlishForShop,
   searchProductByUser,
-  UnpublishProductForShop,
+  unpublishProductForShop,
   findAllProducts,
   findProduct,
   updateProductById,
@@ -42,7 +42,7 @@ static async updateProduct(type, productId, payload) {
     return await publishProductForShop({ product_id, product_shop });
   }
   static async unPublishProduct({ product_id, product_shop }) {
-    return await UnpublishProductForShop({ product_id, product_shop });
+    return await unpublishProductForShop({ product_id, product_shop });
   }
   // search product
 

@@ -4,6 +4,7 @@ const { product, clothing, electronic } = require("../../models/product.model");
 const { Types, model } = require("mongoose");
 const { getSelectData, unGetSelectData } = require("../../utils/index");
 const { checkProductStock } = require("../repositories/inventory.repo");
+const { BadRequestError, NotFoundError, ForbiddenError } = require('../../core/error.response');
 
 const findAllDraftsForShop = async ({ query, limit, skip }) => {
   return await queryProduct({ query, limit, skip });
@@ -22,15 +23,39 @@ const publishProductForShop = async ({ product_id, product_shop }) => {
   const { modifiedCount } = await foundShop.updateOne(foundShop);
   return modifiedCount;
 };
-const UnpublishProductForShop = async ({ product_id, product_shop }) => {
-  const foundShop = await product.findOne({
-    _id: new Types.ObjectId(product_id),
-    product_shop: new Types.ObjectId(product_shop),
-  });
-  if (!foundShop) throw new Error("Product not found");
-  foundShop.isDraft = true;
-  foundShop.isPublished = false;
-  const { modifiedCount } = await foundShop.updateOne(foundShop);
+const unpublishProductForShop = async ({ product_id, product_shop }) => {
+  console.log('Unpublish attempt:', { product_id, product_shop });
+
+  // Trước tiên kiểm tra xem sản phẩm có tồn tại không
+  let productExists;
+  try {
+    productExists = await product.findOne({
+      _id: new Types.ObjectId(product_id)
+    });
+  } catch (error) {
+    console.error('Error converting ID:', error.message);
+    throw new BadRequestError("Invalid product ID format");
+  }
+
+  // Nếu sản phẩm không tồn tại
+  if (!productExists) {
+    console.error('Product does not exist with ID:', product_id);
+    throw new NotFoundError("Product not found");
+  }
+
+  // Kiểm tra quyền sở hữu
+  if (productExists.product_shop.toString() !== product_shop.toString()) {
+    console.error('Permission denied:', { 
+      productOwner: productExists.product_shop.toString(), 
+      requestUser: product_shop.toString() 
+    });
+    throw new ForbiddenError("You don't have permission to unpublish this product");
+  }
+
+  // Nếu bạn ở đây, có nghĩa bạn là chủ sở hữu
+  productExists.isDraft = true;
+  productExists.isPublished = false;
+  const { modifiedCount } = await productExists.updateOne(productExists);
   return modifiedCount;
 };
 
@@ -207,7 +232,7 @@ module.exports = {
   findAllDraftsForShop,
   publishProductForShop,
   findAllPushlishForShop,
-  UnpublishProductForShop,
+  unpublishProductForShop,
   searchProductByUser,
   findAllProducts,
   findProduct,
