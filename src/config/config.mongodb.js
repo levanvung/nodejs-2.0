@@ -13,7 +13,6 @@ const dev = {
     }
 }
 
-//level 1
 
 const pro = {
     app: {
