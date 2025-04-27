@@ -1,6 +1,6 @@
 "use-strict";
 
-const { product, clothing, electronic, laptop, iphone, airport } = require("../models/product.model");
+const { product, clothing, electronic, laptop, iphone, airport, airpods, ipad } = require("../models/product.model");
 const { insertInventory } = require("../models/repositories/inventory.repo");
 const {
   findAllDraftsForShop,
@@ -296,10 +296,70 @@ class AirPort extends Product {
   }
 }
 
+class AirPods extends Product {
+  async createProduct() {
+    const newAirPods = await airpods.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newAirPods) {
+      throw new Error("Cannot create new AirPods");
+    }
+    const newProduct = await super.createProduct(newAirPods._id);
+    if (!newProduct) {
+      throw new Error("Cannot create new product");
+    }
+    return newProduct;
+  }
+  
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: airpods});
+    }
+    const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+    return updateProduct;
+  }
+}
+
+class IPad extends Product {
+  async createProduct() {
+    const newIPad = await ipad.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newIPad) {
+      throw new Error("Cannot create new iPad");
+    }
+    const newProduct = await super.createProduct(newIPad._id);
+    if (!newProduct) {
+      throw new Error("Cannot create new product");
+    }
+    return newProduct;
+  }
+  
+  async updateProduct(productId){
+    const objectParams = removeUndefindObject(this);
+    if(objectParams.product_attributes){
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: ipad});
+    }
+    const updateProduct = await super.updateProduct(productId, updateNestedObjectParser(objectParams));
+    return updateProduct;
+  }
+}
+
 ProductFactory.registerProduct("Clothing", Clothing);
 ProductFactory.registerProduct("Electronics", Electronics);
 ProductFactory.registerProduct("Laptop", Laptop);
 ProductFactory.registerProduct("iPhone", IPhone);
 ProductFactory.registerProduct("AirPort", AirPort);
+ProductFactory.registerProduct("AirPods", AirPods);
+ProductFactory.registerProduct("IPad", IPad);
 
 module.exports = ProductFactory;

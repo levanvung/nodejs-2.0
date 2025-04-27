@@ -140,7 +140,7 @@ const searchProductByUser = async ({ keySearch, limit = 50, skip = 0 }) => {
   }
 
   // Kiểm tra xem keySearch có phải là một loại sản phẩm không
-  const productTypes = ["Electronics", "Clothing", "Furniture", "Laptop", "iPhone", "AirPort"];
+  const productTypes = ["Electronics", "Clothing", "Furniture", "Laptop", "iPhone", "AirPort", "AirPods", "iPad"];
   const isProductType = productTypes.includes(keySearch);
 
   let searchQuery;

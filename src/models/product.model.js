@@ -29,7 +29,7 @@ const productSchema = new Schema(
     product_type: {
       type: String,
       required: true,
-      enum: ["Electronics", "Clothing", "Furniture", "Laptop", "iPhone", "AirPort"],
+      enum: ["Electronics", "Clothing", "Furniture", "Laptop", "iPhone", "AirPort", "AirPods", "iPad"],
     },
     product_shop: { type: Schema.Types.ObjectId, ref: "Shop" },
     product_attributes: { type: Schema.Types.Mixed, required: true },
@@ -148,6 +148,45 @@ const airPortSchema = new Schema(
   }
 );
 
+// Schema cho AirPods
+const airPodsSchema = new Schema(
+  {
+    model: { type: String, required: true },
+    color: String,
+    noise_cancellation: Boolean,
+    battery_life: String,
+    water_resistant: Boolean,
+    wireless_charging: Boolean,
+    connectivity: String,
+    product_shop: { type: Schema.Types.ObjectId, ref: "Shop" },
+  },
+  {
+    collection: "airpods",
+    timestamps: true,
+  }
+);
+
+// Schema cho iPad
+const iPadSchema = new Schema(
+  {
+    model: { type: String, required: true },
+    color: String,
+    storage: String,
+    screen_size: String,
+    resolution: String,
+    processor: String,
+    camera: String,
+    battery: String,
+    cellular: Boolean,
+    pencil_support: Boolean,
+    product_shop: { type: Schema.Types.ObjectId, ref: "Shop" },
+  },
+  {
+    collection: "ipads",
+    timestamps: true,
+  }
+);
+
 module.exports = {
   product: model(DOCUMENT_NAME, productSchema),
   clothing: model("Clothing", clothingSchema),
@@ -155,4 +194,6 @@ module.exports = {
   laptop: model("Laptop", laptopSchema),
   iphone: model("iPhone", iPhoneSchema),
   airport: model("AirPort", airPortSchema),
+  airpods: model("AirPods", airPodsSchema),
+  ipad: model("iPad", iPadSchema),
 };
